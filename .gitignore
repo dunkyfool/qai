@@ -63,3 +63,8 @@ target/
 
 #vim swap
 *.swp
+
+#media
+*.mov
+*.png
+.DS*
