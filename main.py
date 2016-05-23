@@ -5,6 +5,10 @@ import numpy as np
 # Random Minibatch #
 ####################
 def random_minibatch(data,label,size):
+  """
+  Random choose minibatch from data and corresponding label
+  * size : minibatch size
+  """
   new_data = np.zeros((size,data.shape[1]))
   new_label = np.zeros((size,label.shape[1]))
   for i in range(size):
