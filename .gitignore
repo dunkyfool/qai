@@ -68,3 +68,6 @@ target/
 *.mov
 *.png
 .DS*
+
+#HDF5
+*.h5
