@@ -8,25 +8,6 @@ import numpy as np
 import cv2
 import time
 
-
-############
-# Variable #
-############
-cap = cv2.VideoCapture(0)
-#cap = cv2.VideoCapture('vtest.avi')
-
-fps = 10
-width, height = int(cap.get(3)), int(cap.get(4))
-capSize = (width, height)
-fourcc = cv2.VideoWriter_fourcc('m','p','4','v')
-vout = cv2.VideoWriter()
-success = vout.open('../data/output.mov',fourcc,fps,capSize)
-mode = False
-current_time = 0 # record start time 
-_fps = 0         # frame counter
-start_frame = np.ones((height,width,3),dtype=np.uint8)  # for auto-split[start]
-end_frame = np.zeros((height,width,3),dtype=np.uint8)   # for auto-split[end]
-
 ###########
 # Get FPS #
 ###########
@@ -43,11 +24,33 @@ def getfps(flag, current_time, _fps):
     _fps = 0
   return current_time, _fps
 
-#########
-# Start #
-#########
-start = time.time()
-while(True):
+########
+# main #
+########
+def go():
+  ############
+  # Variable #
+  ############
+  cap = cv2.VideoCapture(0)
+  #cap = cv2.VideoCapture('vtest.avi')
+
+  fps = 10
+  width, height = int(cap.get(3)), int(cap.get(4))
+  capSize = (width, height)
+  fourcc = cv2.VideoWriter_fourcc('m','p','4','v')
+  vout = cv2.VideoWriter()
+  success = vout.open('../data/output.mov',fourcc,fps,capSize)
+  mode = False
+  current_time = 0 # record start time 
+  _fps = 0         # frame counter
+  start_frame = np.ones((height,width,3),dtype=np.uint8)  # for auto-split[start]
+  end_frame = np.zeros((height,width,3),dtype=np.uint8)   # for auto-split[end]
+
+  #########
+  # Start #
+  #########
+  start = time.time()
+  while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
     _fps +=1
@@ -73,11 +76,14 @@ while(True):
         mode = not mode
         print 'Record', mode
 
-seconds = time.time() - start
-print _fps / seconds
+  seconds = time.time() - start
+  print _fps / seconds
 
-# When everything done, release the capture
-vout.release()
-vout = None
-cap.release()
-cv2.destroyAllWindows()
+  # When everything done, release the capture
+  vout.release()
+  vout = None
+  cap.release()
+  cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+  go()
