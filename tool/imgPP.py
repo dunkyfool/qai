@@ -1,31 +1,16 @@
+#
+# Don't know why save ones frame in the video but the mean is two
+# Use print frame.mean() for checking
 import numpy as np
 import cv2
 import time
 import os
 
 ############
-# Variable #
-############
-cap = cv2.VideoCapture('../data/output.mov')
-
-width, height = int(cap.get(3)), int(cap.get(4))
-total_frame = int(cap.get(7))
-fps = int(cap.get(5))
-pause = False
-end_flag = False
-process_flag = False
-start_frame = -1
-end_frame = -1
-state = -1
-name = None
-path = '../data/pic/'
-idx = 0
-
-############
 # Function #
 ############
 def stateMachine(state, start_frame, end_frame, cap, frame, idx, path, name, pause):
-    # output state, idx, process_flag, name, pause
+    # output state, idx, process_flag, name, pause, item_id
     # state -1 : bulletproof
     if state == -1:
         if start_frame == -1:
@@ -63,6 +48,31 @@ def stateMachine(state, start_frame, end_frame, cap, frame, idx, path, name, pau
             cv2.imwrite(fullname,frame)
             return 1, idx, True, name, False
 
+def auto_stateMachine(state,cap,frame,idx,path,item_id):
+  if state == -1:
+    if frame.mean() == 2:
+      item_id += 1
+      print 'Image[' + str(item_id) + '] Process Start...'
+      return 0, idx, item_id
+    return -1, idx, item_id
+  elif state == 0:
+    if frame.mean() == 0:
+      print 'Image[' + str(item_id) + '] Process finish...'
+      idx = 0
+      return -1, idx, item_id
+    else:
+      idx += 1
+      new_idx = idxGenerator(idx)
+      new_item_id = idxGenerator(item_id)
+      folder = path + new_item_id
+      #make folder
+      if not os.path.isdir(folder):
+        cmd = 'mkdir -p ' + folder
+        os.system(cmd)
+      fullname = folder + '/' + new_item_id + new_idx + '.png'
+      cv2.imwrite(fullname,frame)
+      return 0, idx, item_id
+
 def idxGenerator(idx):
     # create id like 001 023 312
     d = idx / 10
@@ -74,11 +84,31 @@ def idxGenerator(idx):
         new_idx = str(idx)
     return new_idx
 
-#########
-# Start #
-#########
-start = time.time()
-while(True):
+def go():
+  ############
+  # Variable #
+  ############
+  cap = cv2.VideoCapture('../data/output.mov')
+
+  width, height = int(cap.get(3)), int(cap.get(4))
+  total_frame = int(cap.get(7))
+  fps = int(cap.get(5))
+  pause = False
+  end_flag = False
+  process_flag = False
+  start_frame = -1
+  end_frame = -1
+  state = -1
+  name = None
+  path = '../data/pic/'
+  idx = 0
+  item_id = 0
+
+  #########
+  # Start #
+  #########
+  start = time.time()
+  while(True):
     # Capture frame-by-frame
     if not pause:
       ret, frame = cap.read()
@@ -94,53 +124,61 @@ while(True):
     else:
         end_flag = False
 
-    if process_flag:
-        state, idx, process_flag, name, pause = stateMachine(state,start_frame,end_frame,cap,frame,idx,path,name,pause)
+#    if process_flag:
+    #state, idx, process_flag, name, pause, item_id = stateMachine(state,start_frame,end_frame,cap,frame,idx,path,name,pause,item_id)
+    #print type(state), type(cap), type(frame), type(idx), type(path), type(item_id)
+    #print state, cap, frame, idx, path, item_id
+    #print frame.mean()
+    state, idx, item_id = auto_stateMachine(state,cap,frame,idx,path,item_id)
 
     # show image
     cv2.imshow('frame',frame)
     key = cv2.waitKey(1) & 0xFF
 
     # keyboard interrupt
-    if key == ord('q') and not process_flag:
+    if key == ord('q'): #and not process_flag:
         break
-    elif key == 32 and not end_flag and not process_flag:
-        pause = not pause
-        print 'PAUSE', pause
-    elif key == ord('s') and not process_flag:
-        start_frame = current_frame
-        print start_frame
-    elif key == ord('e') and not process_flag:
-        end_frame = current_frame - 1 #prevent last frame
-        print end_frame
-    elif key == ord('p'):
-        process_flag = not process_flag
-    elif key == ord('z'):
-        print '###########################'
-        print '#          STATUS         #'
-        print '###########################'
-        print 'PAUSE:', pause, 'End_Flag:', end_flag, 'Process_Flag:', process_flag
-        print 'Start_frame:' ,start_frame, 'End_frame:', end_frame,
-        print 'State: ', state
-    elif key == 2 and not process_flag: #leftkey jump back 10 frames
-        current_frame -= 10
-        if current_frame < 0: current_frame = 0
-        cap.set(1,current_frame)
-        print current_frame, cap.get(1)
-    elif key == 3 and not process_flag: #rightkey jump forward 10 frames
-        current_frame += 10
-        if current_frame > total_frame: current_frame = total_frame
-        cap.set(1,current_frame)
-        print current_frame, cap.get(1)
+#    elif key == 32 and not end_flag and not process_flag:
+#        pause = not pause
+#        print 'PAUSE', pause
+#    elif key == ord('s') and not process_flag:
+#        start_frame = current_frame
+#        print start_frame
+#    elif key == ord('e') and not process_flag:
+#        end_frame = current_frame - 1 #prevent last frame
+#        print end_frame
+#    elif key == ord('p'):
+#        process_flag = not process_flag
+#    elif key == ord('z'):
+#        print '###########################'
+#        print '#          STATUS         #'
+#        print '###########################'
+#        print 'PAUSE:', pause, 'End_Flag:', end_flag, 'Process_Flag:', process_flag
+#        print 'Start_frame:' ,start_frame, 'End_frame:', end_frame,
+#        print 'State: ', state
+#    elif key == 2 and not process_flag: #leftkey jump back 10 frames
+#        current_frame -= 10
+#        if current_frame < 0: current_frame = 0
+#        cap.set(1,current_frame)
+#        print current_frame, cap.get(1)
+#    elif key == 3 and not process_flag: #rightkey jump forward 10 frames
+#        current_frame += 10
+#        if current_frame > total_frame: current_frame = total_frame
+#        cap.set(1,current_frame)
+#        print current_frame, cap.get(1)
 #    else: # show keyboard ID
 #        if key != 255:
 #            print key
 
-seconds = time.time() - start
+  seconds = time.time() - start
 
-# When everything done, release the capture
-cap.release()
-cv2.destroyAllWindows()
+  # When everything done, release the capture
+  cap.release()
+  cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+  #pass
+  go()
 
 
 # cap.get(id)
