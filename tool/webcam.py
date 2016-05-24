@@ -50,6 +50,7 @@ def go():
   # Start #
   #########
   start = time.time()
+  vout.write(start_frame)
   while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
@@ -86,5 +87,5 @@ def go():
   cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-  pass
-  #go()
+  #pass
+  go()
