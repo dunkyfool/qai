@@ -31,7 +31,8 @@ def saveFile(onlyfolders):
     print 'Image convert to file start...'
     for folder in onlyfolders:
         filename = [f for f in listdir(join(path,folder)) if isfile(join(path,folder,f))]
-        filename.remove('.DS_Store')
+        if '.DS_Store' in filename:
+          filename.remove('.DS_Store')
         #print imgs
         txtname = txt_path + '/' + folder + '.h5'
         with h5py.File(txtname, 'w') as hf:
@@ -57,7 +58,8 @@ def loadFile(txt_path):
   trainLabel = []
   feature = None
   filename = [f for f in listdir(txt_path) if isfile(join(txt_path,f))]
-  filename.remove('.DS_Store')
+  if '.DS_Store' in filename:
+    filename.remove('.DS_Store')
   print filename
   for label, name in enumerate(filename):
     txtname = join(txt_path,name)
@@ -81,6 +83,7 @@ def loadFile(txt_path):
 # main #
 ########
 if __name__ == '__main__':
+  pass
   #saveFile(onlyfolders)
-  trainDic = loadFile(txt_path)
+  #trainDic = loadFile(txt_path)
 
