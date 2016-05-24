@@ -5,25 +5,12 @@ import numpy as np
 import cv2
 import time
 
-############
-# Variable #
-############
-path = '../data/pic'
-txt_path = '../txt'
 
-# list folder in data
-onlyfolders = [f for f in listdir(path) if isdir(join(path, f))]
-#print onlyfolders
-
-# check txt folder
-if not isdir(txt_path):
-  cmd = 'mkdir -p ' + txt_path
-  system(cmd)
 
 #############
 # Save file #
 #############
-def saveFile(onlyfolders):
+def saveFile(onlyfolders,path,txt_path):
     """
     Convert all images in ../data/pic/$img into ../txt/XXX.h5
     """
@@ -76,8 +63,31 @@ def loadFile(txt_path):
 
   for k, v in sorted(train.iteritems()):
     print k, v.shape
-
   return train
+
+def go():
+  ############
+  # Variable #
+  ############
+  path = '../data/pic'
+  txt_path = '../txt'
+
+  # check pic folder
+  if not isdir(path):
+    cmd = 'mkdir -p ' + path
+    system(cmd)
+
+  # check txt folder
+  if not isdir(txt_path):
+    cmd = 'mkdir -p ' + txt_path
+    system(cmd)
+
+  # list folder in data
+  onlyfolders = [f for f in listdir(path) if isdir(join(path, f))]
+  #print onlyfolders
+  saveFile(onlyfolders,path,txt_path)
+  trainDic = loadFile(txt_path)
+  return trainDic
 
 ########
 # main #

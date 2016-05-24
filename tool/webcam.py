@@ -7,6 +7,7 @@
 import numpy as np
 import cv2
 import time
+import os
 
 ###########
 # Get FPS #
@@ -33,6 +34,10 @@ def go():
   ############
   cap = cv2.VideoCapture(0)
   #cap = cv2.VideoCapture('vtest.avi')
+  path = '../data/pic'
+  if not os.path.isdir(path):
+    cmd = 'mkdir -p ' + path
+    os.system(cmd)
 
   fps = 10
   width, height = int(cap.get(3)), int(cap.get(4))

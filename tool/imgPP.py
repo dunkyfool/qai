@@ -110,8 +110,8 @@ def go():
   start = time.time()
   while(True):
     # Capture frame-by-frame
-    if not pause:
-      ret, frame = cap.read()
+    #if not pause:
+    ret, frame = cap.read()
 
     current_frame = cap.get(1)
     #print 'current_frame', current_frame
@@ -119,10 +119,11 @@ def go():
 
     # Prevent out of frame
     if current_frame == total_frame:
-        pause = True
-        end_flag = True
-    else:
-        end_flag = False
+        break
+    #    pause = True
+    #    end_flag = True
+    #else:
+    #    end_flag = False
 
 #    if process_flag:
     #state, idx, process_flag, name, pause, item_id = stateMachine(state,start_frame,end_frame,cap,frame,idx,path,name,pause,item_id)
