@@ -24,6 +24,8 @@ success = vout.open('../data/output.mov',fourcc,fps,capSize)
 mode = False
 current_time = 0 # record start time 
 _fps = 0         # frame counter
+start_frame = np.ones((height,width,3),dtype=np.uint8)  # for auto-split[start]
+end_frame = np.zeros((height,width,3),dtype=np.uint8)   # for auto-split[end]
 
 ###########
 # Get FPS #
@@ -53,21 +55,22 @@ while(True):
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     frame = np.repeat(frame.reshape(1,-1),3,axis=0)
     frame = frame.reshape((3,height,width)).transpose(1,2,0)
-
+    #print frame.shape, type(frame), type(frame[0,0,0])
     # Record webcame
     if mode:
         vout.write(frame)
-        #cv2.imwrite('1.png',frame)
-    #    current_time, _fps = getfps(1, current_time,_fps)
-    #else:
-    #    current_time, _fps = getfps(0, current_time,_fps)
     # Display the resulting frame
     cv2.imshow('frame',frame)
     key = cv2.waitKey(1) & 0xFF
     if key == ord('q'):
         break
     elif key == ord('s'):
-        mode = ~mode
+        if not mode:
+          #print start_frame.shape, type(start_frame), type(start_frame[0,0,0])
+          vout.write(start_frame)
+        else:
+          vout.write(end_frame)
+        mode = not mode
         print 'Record', mode
 
 seconds = time.time() - start
