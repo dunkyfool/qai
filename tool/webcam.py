@@ -86,4 +86,5 @@ def go():
   cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-  go()
+  pass
+  #go()
