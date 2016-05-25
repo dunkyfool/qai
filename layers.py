@@ -62,8 +62,15 @@ def cnn_relu(x,w,b,conv_para):
 def cnn_relu_maxpool(x,w,b,conv_para,pool_para):
   return maxpool(relu(cnn(x,w,b,conv_para)),pool_para)
 
+def cnn_relu_maxpool_bn(x,w,b,conv_para,pool_para,bn_para):
+  out = maxpool(relu(cnn(x,w,b,conv_para)),pool_para)
+  return batchnorm(out, bn_para)
+
 def dnn_relu(x,w,b):
   return relu(dnn(x,w,b))
+
+def dnn_relu_bn(x,w,b,bn_para):
+  return batchnorm(relu(dnn(x,w,b)),bn_para)
 
 ########
 # TEST #
