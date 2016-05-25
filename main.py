@@ -88,7 +88,7 @@ class CCnet(object):
     y_ = tf.placeholder(tf.float32, [None,cls])
     self.cnn_input = {'0':x}
     self.dnn_input = {}
-    lr = 1e-1
+    lr = 4e-2
     epoch = 1000
 
     #CNN layers
@@ -98,6 +98,7 @@ class CCnet(object):
                                                            self.cnn_para['b{0}'.format(i+1)],
                                                            self.conv_para,
                                                            self.pool_para)
+
     #CNN output feature
     cnn_output = self.cnn_input[str(self.num_cnn)]
     self.dnn_input['0'] = tf.reshape(cnn_output,[-1,self.cnn_shape])
@@ -132,9 +133,13 @@ class CCnet(object):
 
 
 def test():
-  x = np.random.random((5,48,48,3))
-  y = np.random.random((5,10))
-  net = CCnet()
+  #x = np.random.random((5,48,48,3))
+  #y = np.random.random((5,10))
+  dic = loadFile('txt/')
+  x, y = dic['data'], dic['label']
+  _, H, W, C =  x.shape
+  _, cls = y.shape
+  net = CCnet(input_dim=(H,W,C),num_class=cls)
   net.loss(x,y,'train')
   pass
 
