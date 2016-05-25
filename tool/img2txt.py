@@ -52,7 +52,9 @@ def loadFile(txt_path):
   train = {}
   trainData = []
   trainLabel = []
+  mark = []
   shape = None
+  label = None
 
   #list all record in ../txt & remove .DS_Store
   filename = [f for f in listdir(txt_path) if isfile(join(txt_path,f))]
@@ -69,13 +71,19 @@ def loadFile(txt_path):
       for i in hf.keys():
         if i != 'shape':
           trainData += [np.array(hf.get(i))]
-          trainLabel += [label]
+          mark += [label]
 
   # shape = (-1,H,W,C)
   shape = np.insert(shape,0,-1)
   #print np.asarray(trainData).shape
+
+  # build label (N,cls)
+  trainLabel = np.zeros((len(mark),label+1))
+  for i in range(len(mark)):
+    trainLabel[i,mark[i]] += 1
+
   train['data'] = np.asarray(trainData).reshape(shape)
-  train['label'] = np.asarray(trainLabel)
+  train['label'] = trainLabel
   print 'Load data finish...'
   print 'Time:', time.time() - start
 
