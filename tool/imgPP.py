@@ -50,7 +50,7 @@ def stateMachine(state, start_frame, end_frame, cap, frame, idx, path, name, pau
 
 def auto_stateMachine(state,cap,frame,idx,path,item_id):
   if state == -1:
-    if frame.mean() == 2:
+    if frame.mean() > 0 and frame.mean() < 5:
       item_id += 1
       print 'Image[' + str(item_id) + '] Process Start...'
       return 0, idx, item_id
