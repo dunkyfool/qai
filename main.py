@@ -5,6 +5,27 @@
 import numpy as np
 from layers import *
 
+####################
+# Random Minibatch #
+####################
+def random_minibatch(data,label,size):
+  """
+  Random choose minibatch from data and corresponding label
+  * size : minibatch size
+  """
+  mask = [np.arange(size,data.shape[0])]
+  new_data = np.zeros_like(data)
+  new_data = np.delete(new_data,mask,axis=0)
+  new_label = np.zeros_like(label)
+  new_label = np.delete(new_label,mask,axis=0)
+
+  for i in range(size):
+    idx = np.floor(np.random.uniform(low=0,high=data.shape[0])).astype(np.int64)
+    new_data[i] += data[idx]
+    new_label[i] += label[idx]
+  return new_data, new_label
+
+
 def weight(shape):
   w = tf.truncated_normal(shape, stddev=1e-5)
   return tf.Variable(w)
@@ -59,11 +80,15 @@ class CCnet(object):
                       'kernel':2}
 
 
-  def loss(self,X):
+  def loss(self,X,y):
     _, H, W, C = X.shape
+    _, cls = y.shape
     x = tf.placeholder(tf.float32, [None,H,W,C])
+    y_ = tf.placeholder(tf.float32, [None,cls])
     self.cnn_input = {'0':x}
     self.dnn_input = {}
+    lr = 1e-1
+    epoch = 1000
 
     #CNN layers
     for i in range(self.num_cnn):
@@ -82,22 +107,32 @@ class CCnet(object):
                                                    self.dnn_para['W{0}'.format(i+1)],
                                                    self.dnn_para['b{0}'.format(i+1)])
     #loss function
-    y = log_softmax(self.dnn_input[str(self.num_dnn)])
+    score = softmax(self.dnn_input[str(self.num_dnn)])
+    cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(score), reduction_indices=[1]))
+    train_step = tf.train.GradientDescentOptimizer(lr).minimize(cross_entropy)
+    correct_prediction = tf.equal(tf.argmax(score,1), tf.argmax(y_,1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     #init
     init = tf.initialize_all_variables()
     sess = tf.Session()
     sess.run(init)
 
-    print self.cnn_shape
-    output = sess.run([y],feed_dict={x:X})[0]
+    output = sess.run([score],feed_dict={x:X})[0]
     print output;print output.shape
+    print 'training start!!'
+    for i in range(epoch):
+        batch_xs, batch_ys = random_minibatch(X,y,2)
+        _, loss, acc = sess.run([train_step,cross_entropy,accuracy], feed_dict={x: batch_xs, y_: batch_ys})
+        if i%100 == 0:
+            print loss, acc
 
 
 def test():
-  x = np.ones((5,48,48,3))
+  x = np.random.random((5,48,48,3))
+  y = np.random.random((5,10))
   net = CCnet()
-  net.loss(x)
+  net.loss(x,y)
   pass
 
 if __name__=='__main__':
