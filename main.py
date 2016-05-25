@@ -4,6 +4,7 @@
 #
 import numpy as np
 from layers import *
+from tool.img2txt import loadFile
 
 ####################
 # Random Minibatch #
