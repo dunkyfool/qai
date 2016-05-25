@@ -11,5 +11,5 @@ if output == 'y':
   system(cmd2)
 
 webcam.go()
-imgPP.go()
+imgPP.go(small=48)
 trainDic = img2txt.go()
