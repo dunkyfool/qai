@@ -84,13 +84,14 @@ def idxGenerator(idx):
         new_idx = str(idx)
     return new_idx
 
-def go():
+def go(small=720):
   ############
   # Variable #
   ############
   cap = cv2.VideoCapture('../data/output.mov')
 
   width, height = int(cap.get(3)), int(cap.get(4))
+  #small = min(width,height)
   total_frame = int(cap.get(7))
   fps = int(cap.get(5))
   pause = False
@@ -113,7 +114,8 @@ def go():
     #if not pause:
     ret, frame = cap.read()
 
-    current_frame = cap.get(1)
+    current_frame = cap.get(1) #index of frame
+    frame = cv2.resize(frame, (small, small))
     #print 'current_frame', current_frame
     # Record webcame
 
@@ -179,7 +181,7 @@ def go():
 
 if __name__ == '__main__':
   pass
-  #go()
+  #go(720)
 
 
 # cap.get(id)
