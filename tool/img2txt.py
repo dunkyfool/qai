@@ -13,10 +13,13 @@ import time
 def saveFile(onlyfolders,path,txt_path):
     """
     Convert all images in ../data/pic/$img into ../txt/XXX.h5
+    onlyfolders: list all folder in ../data
     """
     start = time.time()
+    img = None
     print 'Image convert to file start...'
     for folder in onlyfolders:
+        #list all files in folder & remove .DS_Store
         filename = [f for f in listdir(join(path,folder)) if isfile(join(path,folder,f))]
         if '.DS_Store' in filename:
           filename.remove('.DS_Store')
@@ -26,6 +29,12 @@ def saveFile(onlyfolders,path,txt_path):
             for name in filename:
                 img = cv2.imread(join(path,folder,name),0)
                 hf.create_dataset(name,data=img.reshape(1,-1))
+            #save picture's shape in each record
+            shape = img.shape
+            if len(shape) == 2:
+              shape = shape + (1,)
+            print shape
+            hf.create_dataset('shape',data=shape)
     print 'Image convert to file finish...'
     print 'Time:', time.time()-start
 
@@ -43,20 +52,29 @@ def loadFile(txt_path):
   train = {}
   trainData = []
   trainLabel = []
-  feature = None
+  shape = None
+
+  #list all record in ../txt & remove .DS_Store
   filename = [f for f in listdir(txt_path) if isfile(join(txt_path,f))]
   if '.DS_Store' in filename:
     filename.remove('.DS_Store')
   print filename
+
+  # load pixel and assign label & reshape it as picture
   for label, name in enumerate(filename):
     txtname = join(txt_path,name)
     with h5py.File(txtname,'r') as hf:
       print hf.keys()
+      shape = np.array(hf.get('shape'))
       for i in hf.keys():
-        feature = np.array(hf.get(i)).shape[1]
-        trainData += [np.array(hf.get(i))]
-        trainLabel += [label]
-  train['data'] = np.asarray(trainData).reshape(-1,feature)
+        if i != 'shape':
+          trainData += [np.array(hf.get(i))]
+          trainLabel += [label]
+
+  # shape = (-1,H,W,C)
+  shape = np.insert(shape,0,-1)
+  #print np.asarray(trainData).shape
+  train['data'] = np.asarray(trainData).reshape(shape)
   train['label'] = np.asarray(trainLabel)
   print 'Load data finish...'
   print 'Time:', time.time() - start
@@ -87,13 +105,14 @@ def go():
   #print onlyfolders
   saveFile(onlyfolders,path,txt_path)
   trainDic = loadFile(txt_path)
-  return trainDic
+  #return trainDic
 
 ########
 # main #
 ########
 if __name__ == '__main__':
   pass
+  #go()
   #saveFile(onlyfolders)
   #trainDic = loadFile(txt_path)
 
