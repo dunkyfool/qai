@@ -81,7 +81,7 @@ class CCnet(object):
                       'kernel':2}
 
 
-  def loss(self,X,y):
+  def loss(self,X,y,mode):
     _, H, W, C = X.shape
     _, cls = y.shape
     x = tf.placeholder(tf.float32, [None,H,W,C])
@@ -119,10 +119,12 @@ class CCnet(object):
     sess = tf.Session()
     sess.run(init)
 
-    output = sess.run([score],feed_dict={x:X})[0]
-    print output;print output.shape
-    print 'training start!!'
-    for i in range(epoch):
+    if mode == 'test':
+      output = sess.run([score],feed_dict={x:X})[0]
+      print output;print output.shape
+    elif mode == 'train':
+      print 'training start!!'
+      for i in range(epoch):
         batch_xs, batch_ys = random_minibatch(X,y,2)
         _, loss, acc = sess.run([train_step,cross_entropy,accuracy], feed_dict={x: batch_xs, y_: batch_ys})
         if i%100 == 0:
@@ -133,7 +135,7 @@ def test():
   x = np.random.random((5,48,48,3))
   y = np.random.random((5,10))
   net = CCnet()
-  net.loss(x,y)
+  net.loss(x,y,'train')
   pass
 
 if __name__=='__main__':
