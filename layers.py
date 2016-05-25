@@ -53,6 +53,18 @@ def softmax(x):
 def log_softmax(x):
   return tf.nn.log_softmax(x)
 
+#########
+# Combo #
+#########
+def cnn_relu(x,w,b,conv_para):
+  return relu(cnn(x,w,b,conv_para))
+
+def cnn_relu_maxpool(x,w,b,conv_para,pool_para):
+  return maxpool(relu(cnn(x,w,b,conv_para)),pool_para)
+
+def dnn_relu(x,w,b):
+  return relu(dnn(x,w,b))
+
 ########
 # TEST #
 ########
