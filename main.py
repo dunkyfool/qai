@@ -1,7 +1,7 @@
 #
 # ! self.cnn_shape => self.num_cnn should be num of max_pool
 # ! all cnn layers' stride & pool size are fixed, add if else in loss cnn builder
-#
+# ! spatial batchnorm => fix batch size! so x cannot use None on placeholder
 import numpy as np
 from layers import *
 from tool.img2txt import loadFile
@@ -28,7 +28,7 @@ def random_minibatch(data,label,size):
 
 
 def weight(shape):
-  w = tf.truncated_normal(shape, stddev=1e-5)
+  w = tf.truncated_normal(shape, stddev=1e-3)
   return tf.Variable(w)
 
 def bias(shape):
@@ -46,12 +46,16 @@ class CCnet(object):
   dnn2
   log_softmax
   """
-  def __init__(self,input_dim=(48,48,3),num_class=10,kernel=[3,3,3,3],banks=[3,3,3,3],hidden=[100]):
+  def __init__(self,input_dim=(48,48,3),num_class=10,kernel=[3,3,3,3],banks=[3,3,3,3],hidden=[100],batch=2):
     #variable constant
     H, W, C = input_dim
     k = kernel
+    current_H, current_W = H, W
+    self.bs = batch
     self.cnn_para = {}
     self.dnn_para = {}
+    self.cnn_bn = {}
+    self.dnn_bn = {}
 
     #get num of layer 
     banks = [C] + banks # add image channel as first filter banks
@@ -62,15 +66,23 @@ class CCnet(object):
 
     #variable cnn weight/bias
     # conv1: W1,b1, conv2: W2,b2 ...
+    # batchnorm: W1: (N,H,W,C) b1: (C,)
     for i in range(self.num_cnn):
+      current_H /= 2
+      current_W /= 2
       self.cnn_para["W{0}".format(i+1)] = weight((k[i],k[i],banks[i],banks[i+1]))
       self.cnn_para["b{0}".format(i+1)] = bias([banks[i+1]])
+      self.cnn_bn["W{0}".format(i+1)] = weight((self.bs,current_H,current_W,banks[i+1]))
+      self.cnn_bn["b{0}".format(i+1)] = bias([banks[i+1]])
+      self.cnn_bn["s{0}".format(i+1)] = (self.bs,current_H,current_W,banks[i+1])
 
     #variable dnn weight/bias
     # dnn1: W1, b1, dnn2: W1, b1 ...
     for i in range(self.num_dnn):
       self.dnn_para['W{0}'.format(i+1)] = weight((hidden[i],hidden[i+1]))
       self.dnn_para['b{0}'.format(i+1)] = bias([hidden[i+1]])
+      self.dnn_bn['W{0}'.format(i+1)] = weight((self.bs,hidden[i+1]))
+      self.dnn_bn['b{0}'.format(i+1)] = bias([hidden[i+1]])
 
     #variable para
     # feed same para in all cnn layer
@@ -84,20 +96,30 @@ class CCnet(object):
   def loss(self,X,y,mode):
     _, H, W, C = X.shape
     _, cls = y.shape
-    x = tf.placeholder(tf.float32, [None,H,W,C])
-    y_ = tf.placeholder(tf.float32, [None,cls])
+    x = tf.placeholder(tf.float32, [self.bs,H,W,C])
+    y_ = tf.placeholder(tf.float32, [self.bs,cls])
     self.cnn_input = {'0':x}
     self.dnn_input = {}
-    lr = 4e-2
+    lr = 1e-1
     epoch = 1000
 
     #CNN layers
     for i in range(self.num_cnn):
-      self.cnn_input['{0}'.format(i+1)] = cnn_relu_maxpool(self.cnn_input['{0}'.format(i)],
+       # cnn_relu_maxpool
+#      self.cnn_input['{0}'.format(i+1)] = cnn_relu_maxpool(self.cnn_input['{0}'.format(i)],
+#                                                           self.cnn_para['W{0}'.format(i+1)],
+#                                                           self.cnn_para['b{0}'.format(i+1)],
+#                                                           self.conv_para,
+#                                                           self.pool_para)
+      # cnn_relu_maxpool_batchnorm
+      self.cnn_input['{0}'.format(i+1)] = cnn_relu_maxpool_bn(self.cnn_input['{0}'.format(i)],
                                                            self.cnn_para['W{0}'.format(i+1)],
                                                            self.cnn_para['b{0}'.format(i+1)],
                                                            self.conv_para,
-                                                           self.pool_para)
+                                                           self.pool_para,
+                                                           self.cnn_bn['W{0}'.format(i+1)],
+                                                           self.cnn_bn['b{0}'.format(i+1)],
+                                                           self.cnn_bn['s{0}'.format(i+1)])
 
     #CNN output feature
     cnn_output = self.cnn_input[str(self.num_cnn)]
@@ -105,9 +127,16 @@ class CCnet(object):
 
     #DNN layers
     for i in range(self.num_dnn):
-      self.dnn_input['{0}'.format(i+1)] = dnn_relu(self.dnn_input['{0}'.format(i)],
+       # dnn_relu
+#      self.dnn_input['{0}'.format(i+1)] = dnn_relu(self.dnn_input['{0}'.format(i)],
+#                                                   self.dnn_para['W{0}'.format(i+1)],
+#                                                   self.dnn_para['b{0}'.format(i+1)])
+      # dnn_relu_bn
+      self.dnn_input['{0}'.format(i+1)] = dnn_relu_bn(self.dnn_input['{0}'.format(i)],
                                                    self.dnn_para['W{0}'.format(i+1)],
-                                                   self.dnn_para['b{0}'.format(i+1)])
+                                                   self.dnn_para['b{0}'.format(i+1)],
+                                                   self.dnn_bn['W{0}'.format(i+1)],
+                                                   self.dnn_bn['b{0}'.format(i+1)])
     #loss function
     score = softmax(self.dnn_input[str(self.num_dnn)])
     cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(score), reduction_indices=[1]))
@@ -126,7 +155,7 @@ class CCnet(object):
     elif mode == 'train':
       print 'training start!!'
       for i in range(epoch):
-        batch_xs, batch_ys = random_minibatch(X,y,2)
+        batch_xs, batch_ys = random_minibatch(X,y,self.bs)
         _, loss, acc = sess.run([train_step,cross_entropy,accuracy], feed_dict={x: batch_xs, y_: batch_ys})
         if i%100 == 0:
             print loss, acc
@@ -144,7 +173,7 @@ def test():
   #subtract mean
   x = x - np.mean(x,axis=0)
 
-  net = CCnet(input_dim=(H,W,C),num_class=cls)
+  net = CCnet(input_dim=(H,W,C),num_class=cls,batch=1)
   net.loss(x,y,'train')
   pass
 
