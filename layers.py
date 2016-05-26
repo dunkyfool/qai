@@ -25,9 +25,17 @@ def rnn(x,w,b):
 def dropout(x, p):
   return tf.nn.dropout(x,p)
 
-def batchnorm(x,para):
-  g, b = para['gamma'], para['beta']
+def batchnorm(x, gamma, beta):
+  g, b = gamma, beta
   return tf.nn.batch_normalization(x,0,1,offset=b,scale=g,variance_epsilon=1e-5)
+
+def spatial_batchnorm(x, gamma, beta, shape):
+  N, H, W, C = shape
+  x = tf.reshape(x, [N*H*W,C])
+  gamma = tf.reshape(gamma, [N*H*W,C])
+  g, b = gamma, beta
+  output = tf.nn.batch_normalization(x,0,1,offset=b,scale=g,variance_epsilon=1e-5)
+  return tf.reshape(output, [N,H,W,C])
 
 def maxpool(x, para):
   k = [1,para['kernel'],para['kernel'],1]
@@ -62,15 +70,15 @@ def cnn_relu(x,w,b,conv_para):
 def cnn_relu_maxpool(x,w,b,conv_para,pool_para):
   return maxpool(relu(cnn(x,w,b,conv_para)),pool_para)
 
-def cnn_relu_maxpool_bn(x,w,b,conv_para,pool_para,bn_para):
+def cnn_relu_maxpool_bn(x,w,b,conv_para,pool_para,gamma,beta,shape):
   out = maxpool(relu(cnn(x,w,b,conv_para)),pool_para)
-  return batchnorm(out, bn_para)
+  return spatial_batchnorm(out, gamma, beta, shape)
 
 def dnn_relu(x,w,b):
   return relu(dnn(x,w,b))
 
-def dnn_relu_bn(x,w,b,bn_para):
-  return batchnorm(relu(dnn(x,w,b)),bn_para)
+def dnn_relu_bn(x,w,b,gamma,beta):
+  return batchnorm(relu(dnn(x,w,b)),gamma,beta)
 
 ########
 # TEST #
