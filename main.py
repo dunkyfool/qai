@@ -137,8 +137,13 @@ def test():
   #y = np.random.random((5,10))
   dic = loadFile('txt/')
   x, y = dic['data'], dic['label']
+
   _, H, W, C =  x.shape
   _, cls = y.shape
+
+  #subtract mean
+  x = x - np.mean(x,axis=0)
+
   net = CCnet(input_dim=(H,W,C),num_class=cls)
   net.loss(x,y,'train')
   pass
