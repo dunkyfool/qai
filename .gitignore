@@ -71,3 +71,6 @@ target/
 
 #HDF5
 *.h5
+
+#dataset
+CIFAR-10/*
