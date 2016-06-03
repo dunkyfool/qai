@@ -74,3 +74,4 @@ target/
 
 #dataset
 CIFAR-10/*
+data/*
