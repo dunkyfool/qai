@@ -178,7 +178,7 @@ def load():
     #########################
     # check data is correct #
     #########################
-    '''
+  '''
     # load all batches 
     addr1 = '../data/CIFAR-10/cifar-10-batches-py/data_batch_1'
     dict1 = unpickle(addr1)
@@ -229,7 +229,7 @@ def load():
     testData = testData.reshape(-1,3*32*32)
     print np.array_equal(testData, data[45000:50000,:])
     print np.array_equal(testLabel, label[45000:50000,:])
-    '''
+  '''
   pass
 
 if __name__ == '__main__':
