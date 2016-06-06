@@ -169,7 +169,7 @@ def load():
     valLabel = np.array(hf['valLabel'])
     testData = np.array(hf['testData'])
     testLabel = np.array(hf['testLabel'])
-
+  return trainData, trainLabel, valData, valLabel, testData, testLabel 
     #print trainData.shape, trainLabel.shape
     #print valData.shape, valLabel.shape
     #print testData.shape, testLabel.shape
@@ -234,5 +234,5 @@ def load():
 
 if __name__ == '__main__':
   #convert()
-  load()
+  #load()
   pass
