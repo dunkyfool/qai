@@ -154,8 +154,8 @@ def convert():
     hf.create_dataset('testData',data=testData,compression='gzip')
     hf.create_dataset('testLabel',data=testLabel,compression='gzip')
 
-def load():
-  path = '../data/CIFAR-10'
+def load(path='../data/CIFAR-10'):
+  path = path
   txtname = path+'/cifar10.h5'
   trainData, trainLabel, valData, valLabel, testData, testLabel = None, None, None, None, None, None
   with h5py.File(txtname,'r') as hf:
