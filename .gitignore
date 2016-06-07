@@ -76,3 +76,7 @@ target/
 CIFAR-10/*
 data/*
 archive/MNIST*
+
+#checkpoint
+checkpoint
+*ckpt*

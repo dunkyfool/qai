@@ -5,20 +5,21 @@ import time
 
 if __name__=='__main__':
   start = time.time()
-  _,_,_,_,testData,testLabel = load(path='data/CIFAR-10')
-  print testData.shape, testLabel.shape
+  trainData,trainLabel,_,_,testData,testLabel = load(path='data/CIFAR-10')
+  #print testData.shape, testLabel.shape
   print time.time()-start
 
   # speedup test
-  testData = testData[0:100,:]
-  testLabel = testLabel[0:100,:]
+  #testData = testData[0:100,:]
+  #testLabel = testLabel[0:100,:]
 
+  trainData = trainData.reshape(-1,32,32,3)
   testData = testData.reshape(-1,32,32,3)
 
-  _,H,W,C = testData.shape
-  _,cls = testLabel.shape
 
+  trainData = trainData-np.mean(trainData,axis=0)
   testData = testData-np.mean(testData,axis=0)
   net = modelX()
-  net.loss(testData,testLabel)
+  net.loss(trainData,trainLabel,mode='train')
+  net.loss(testData,testLabel,mode='test')
   pass

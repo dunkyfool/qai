@@ -30,6 +30,9 @@ def random_minibatch(data,label,size):
 
 class modelX():
   def __init__(self):
+    ############
+    # Variable #
+    ############
     self.x = tf.placeholder(tf.float32,[None,32,32,3])
     self.y_hat = tf.placeholder(tf.float32,[None, 10])
     self.f1 = weight([3,3,3,3])
@@ -50,6 +53,17 @@ class modelX():
                       'pad':'SAME',
                       'kernel':2}
 
+    self.regularizers = (tf.nn.l2_loss(self.f1) +
+                         tf.nn.l2_loss(self.f2) +
+                         tf.nn.l2_loss(self.f3) +
+                         tf.nn.l2_loss(self.f4) +
+                         tf.nn.l2_loss(self.w1) +
+                         tf.nn.l2_loss(self.w2))
+
+
+    #########
+    # Layer #
+    #########
     self.cnn1 = cnn_relu_maxpool(self.x,self.f1,self.fb1,self.conv_para,self.pool_para)
     #print self.cnn1.get_shape()
     self.cnn2 = cnn_relu_maxpool(self.cnn1,self.f2,self.fb2,self.conv_para,self.pool_para)
@@ -61,24 +75,50 @@ class modelX():
     self.dnn2 = dnn(self.dnn1, self.w2, self.b2)
     self.softmax = softmax(self.dnn2)
 
-  def loss(self,X,y,lr=2e-4):
+  def loss(self,X,y,mode='test',lr=2e-4,reg=1e-5,batch=5,epoch=30):
     cross_entropy = -tf.reduce_sum(self.y_hat*tf.log(self.softmax))
+    cross_entropy += reg*self.regularizers
     #f = tf.train.GradientDescentOptimizer(lr).minimize(cross_entropy)
     f = tf.train.MomentumOptimizer(lr,0.9).minimize(cross_entropy)
     #f = tf.train.RMSPropOptimizer(lr,0.9,0.9,1e-5).minimize(cross_entropy)
 
     init = tf.initialize_all_variables()
+    saver = tf.train.Saver()
     sess = tf.InteractiveSession()
     sess.run(init)
 
-    for i in range(30):
-      for j in range(10):
-        batch_xs, batch_ys = random_minibatch(X,y,10)
-        sess.run(f,feed_dict={self.x:batch_xs,self.y_hat:batch_ys})
-        if j%10==0:
-          pred = tf.equal(tf.argmax(self.softmax,1),tf.argmax(self.y_hat,1))
-          acc = tf.reduce_mean(tf.cast(pred,tf.float32))
-          print i,j,sess.run([cross_entropy, acc],feed_dict={self.x:X,self.y_hat:y})
+    pred = tf.equal(tf.argmax(self.softmax,1),tf.argmax(self.y_hat,1))
+    acc = tf.reduce_mean(tf.cast(pred,tf.float32))
+
+    #########
+    # Train #
+    #########
+    if mode=='train':
+      num = X.shape[0]
+      good_record = 0.0
+      low_loss = 9999
+      for i in range(epoch):
+        for j in range(num/batch):
+          batch_xs, batch_ys = random_minibatch(X,y,batch)
+          sess.run(f,feed_dict={self.x:batch_xs,self.y_hat:batch_ys})
+          if j%10==0:
+            loss, accuracy = sess.run([cross_entropy,acc],feed_dict={self.x:X,self.y_hat:y})
+            # save best record
+            if accuracy >= good_record and loss < low_loss:
+              good_record = accuracy
+              low_loss = loss
+              save_path = saver.save(sess, "model.ckpt")
+              print("!!Model saved in file: %s" % save_path)
+            print("epoch %2d,\titer %2d,\tLoss %.10f,\tAcc %.5f\tRecord %.5f"%(i,j,loss,accuracy,good_record))
+    ########
+    # Test #
+    ########
+    elif mode=='test':
+      saver.restore(sess, "model.ckpt")
+      print("Model restored.")
+      loss, accuracy = sess.run([cross_entropy,acc],feed_dict={self.x:X,self.y_hat:y})
+      print("Loss %.10f,\tAcc %.5f"%(loss,accuracy))
+      pass
 
 
 if __name__=='__main__':
