@@ -75,3 +75,4 @@ target/
 #dataset
 CIFAR-10/*
 data/*
+archive/MNIST*
