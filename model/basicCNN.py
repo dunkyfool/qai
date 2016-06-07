@@ -96,7 +96,7 @@ class modelX():
     if mode=='train':
       num = X.shape[0]
       good_record = 0.0
-      low_loss = 9999
+      low_loss = np.inf
       for i in range(epoch):
         for j in range(num/batch):
           batch_xs, batch_ys = random_minibatch(X,y,batch)

@@ -20,6 +20,8 @@ if __name__=='__main__':
   trainData = trainData-np.mean(trainData,axis=0)
   testData = testData-np.mean(testData,axis=0)
   net = modelX()
+  start = time.time()
   net.loss(trainData,trainLabel,mode='train')
+  print 'training over', time.time()-start
   net.loss(testData,testLabel,mode='test')
   pass
