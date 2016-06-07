@@ -109,7 +109,8 @@ class modelX():
               low_loss = loss
               save_path = saver.save(sess, "model.ckpt")
               print("!!Model saved in file: %s" % save_path)
-            print("epoch %2d,\titer %2d,\tLoss %.10f,\tAcc %.5f\tRecord %.5f"%(i,j,loss,accuracy,good_record))
+            print("epoch %2d/%2d,\titer %2d/%2d,\tLoss %.10f,\tAcc %.5f\tRecord %.5f" %(i,epoch,j,num/batch,
+                                                                                        loss,accuracy,good_record))
     ########
     # Test #
     ########
