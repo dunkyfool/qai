@@ -75,7 +75,7 @@ class modelX():
     self.dnn2 = dnn(self.dnn1, self.w2, self.b2)
     self.softmax = softmax(self.dnn2)
 
-  def loss(self,X,y,mode='test',lr=2e-4,reg=1e-5,batch=5,epoch=30):
+  def loss(self,X,y,X1,y1,mode='test',lr=2e-4,reg=1e-5,batch=5,epoch=30):
     cross_entropy = -tf.reduce_sum(self.y_hat*tf.log(self.softmax))
     cross_entropy += reg*self.regularizers
     #f = tf.train.GradientDescentOptimizer(lr).minimize(cross_entropy)
@@ -102,7 +102,7 @@ class modelX():
           batch_xs, batch_ys = random_minibatch(X,y,batch)
           sess.run(f,feed_dict={self.x:batch_xs,self.y_hat:batch_ys})
           if j%10==0:
-            loss, accuracy = sess.run([cross_entropy,acc],feed_dict={self.x:X,self.y_hat:y})
+            loss, accuracy = sess.run([cross_entropy,acc],feed_dict={self.x:X1,self.y_hat:y1})
             # save best record
             if accuracy >= good_record and loss < low_loss:
               good_record = accuracy
