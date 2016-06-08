@@ -1,6 +1,5 @@
 from model.basicCNN import *
 from tool.load_cifar10 import *
-from tensorflow.examples.tutorials.mnist import input_data
 import time
 import matplotlib.pyplot as plt
 
@@ -56,6 +55,30 @@ def quick_scan(X,y,X1,y1,lr_range=[-3.0,-3.7],reg_range=[1,0]):
   plt.title('CIFAR-10 validation accuracy')
   plt.show()
 
+def marathon(X,y,X1,y1,X2,y2,lr=1e-4,reg=1e-4,epoch=20):
+  net = modelX()
+  net.loss(X,y,X1,y1,mode='train',lr=lr,reg=reg,batch=100,epoch=epoch)
+  net.loss(X2,y2,X1,y1,mode='test')
+
+  ####################################################
+  # Visualize training loss and train / val accuracy #
+  ####################################################
+  plt.subplot(2, 1, 1)
+  plt.title('Training loss')
+  plt.plot(net.X_loss_history, 'o')
+  plt.xlabel('Iteration')
+
+  plt.subplot(2, 1, 2)
+  plt.title('Accuracy')
+  plt.plot(net.X_acc_history, '-o', label='train')
+  plt.plot(net.X1_acc_history, '-o', label='val')
+  plt.plot([0.5] * len(net.X1_acc_history), 'k--')
+  plt.xlabel('Epoch')
+  plt.legend(loc='lower right')
+  plt.gcf().set_size_inches(15, 12)
+  plt.show()
+  pass
+
 
 if __name__=='__main__':
   start = time.time()
@@ -75,10 +98,7 @@ if __name__=='__main__':
   trainData = trainData-np.mean(trainData,axis=0)
   valData = valData-np.mean(trainData,axis=0)
   testData = testData-np.mean(testData,axis=0)
-  #net = modelX()
-  #start = time.time()
-  quick_scan(trainData,trainLabel,valData,valLabel)
-  #net.loss(trainData,trainLabel,valData,valLabel,mode='train',batch=100)
-  #print 'training over', time.time()-start
-  #net.loss(testData,testLabel,valData,valLabel,mode='test')
+
+  quick_scan(trainData,trainLabel,valData,valLabel,lr_range=[-2.7,-3.4],reg_range=[1.2,0.2])
+  #marathon(trainData,trainLabel,valData,valLabel,testData,testLabel)
   pass
