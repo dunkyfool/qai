@@ -8,6 +8,7 @@ def quick_scan(X,y,X1,y1,lr_range=[-3.0,-3.7],reg_range=[1,0]):
   learning_rates = lr_range
   regularization_strengths = reg_range
   best_val = -1
+  best_lr, best_reg = None, None
 
   tic = time.time()
   for i in range(10):
@@ -23,10 +24,14 @@ def quick_scan(X,y,X1,y1,lr_range=[-3.0,-3.7],reg_range=[1,0]):
     results[(lr,reg)]=(net.X_acc_history[-1],net.X1_acc_history[-1])
     if best_val < net.X1_acc_history[-1]:
       best_val = net.X1_acc_history[-1]
+      best_lr = lr
+      best_reg = reg
 
   toc = time.time()
   print 'Total Training: computed in %fs' % (toc - tic)
   print 'Best Validation Record %.5f' % (best_val)
+  print 'Best Validation learning rate %f' % (best_lr)
+  print 'Best Validation regularization %f' % (best_reg)
 
   ##########################################
   # Visualize the cross-validation results #
@@ -99,6 +104,6 @@ if __name__=='__main__':
   valData = valData-np.mean(trainData,axis=0)
   testData = testData-np.mean(testData,axis=0)
 
-  quick_scan(trainData,trainLabel,valData,valLabel,lr_range=[-2.7,-3.4],reg_range=[1.2,0.2])
+  quick_scan(trainData,trainLabel,valData,valLabel,lr_range=[-2.7,-3.4],reg_range=[0.9,0.2])
   #marathon(trainData,trainLabel,valData,valLabel,testData,testLabel)
   pass
