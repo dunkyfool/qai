@@ -62,7 +62,11 @@ def quick_scan(X,y,X1,y1,lr_range=[-3.0,-3.7],reg_range=[1,0]):
 
 def marathon(X,y,X1,y1,X2,y2,lr=1e-4,reg=1e-4,epoch=20):
   net = modelX()
-  net.loss(X,y,X1,y1,mode='train',lr=lr,reg=reg,batch=100,epoch=epoch)
+  opt = raw_input('Restart training??[y/n]')
+  if opt=='y':
+    net.loss(X,y,X1,y1,mode='train',lr=lr,reg=reg,batch=100,epoch=epoch)
+  elif opt=='n':
+    net.loss(X,y,X1,y1,mode='train',lr=lr,reg=reg,batch=100,epoch=epoch,opt=False)
   net.loss(X2,y2,X1,y1,mode='test')
 
   ####################################################
@@ -104,6 +108,7 @@ if __name__=='__main__':
   valData = valData-np.mean(trainData,axis=0)
   testData = testData-np.mean(testData,axis=0)
 
-  quick_scan(trainData,trainLabel,valData,valLabel,lr_range=[-2.7,-3.4],reg_range=[0.9,0.2])
-  #marathon(trainData,trainLabel,valData,valLabel,testData,testLabel)
+  #quick_scan(trainData,trainLabel,valData,valLabel,lr_range=[-2.7,-3.4],reg_range=[0.9,0.2])
+  marathon(trainData,trainLabel,valData,valLabel,testData,testLabel,
+           lr=0.0005513410,reg=1.7258237895)
   pass
