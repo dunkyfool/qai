@@ -21,17 +21,17 @@ def quick_scan(X,y,X1,y1,lr_range=[-3.0,-3.7],reg_range=[1,0]):
 
     net = modelX()
     net.loss(X,y,X1,y1,mode='train',lr=lr,reg=reg,batch=100,epoch=1)
-    results[(lr,reg)]=(net.X_acc_history[-1],net.X1_acc_history[-1])
-    if best_val < net.X1_acc_history[-1]:
-      best_val = net.X1_acc_history[-1]
+    results[(lr,reg)]=(max(net.X_acc_history),max(net.X1_acc_history))
+    if best_val < max(net.X1_acc_history):
+      best_val = max(net.X1_acc_history)
       best_lr = lr
       best_reg = reg
 
   toc = time.time()
   print 'Total Training: computed in %fs' % (toc - tic)
   print 'Best Validation Record %.5f' % (best_val)
-  print 'Best Validation learning rate %f' % (best_lr)
-  print 'Best Validation regularization %f' % (best_reg)
+  print 'Best Validation learning rate %.10f' % (best_lr)
+  print 'Best Validation regularization %.10f' % (best_reg)
 
   ##########################################
   # Visualize the cross-validation results #
