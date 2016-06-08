@@ -33,6 +33,15 @@ class modelX():
     ############
     # Variable #
     ############
+    # x: image input
+    # y_hat: image label
+    # f: cnn filter weight
+    # fb: cnn filter bias
+    # w: fc weight
+    # b: fc bias
+    # conv_para: cnn stride padding
+    # pool_para: maxpool stride padding kernel
+    # regularizer: L2 loss
     self.x = tf.placeholder(tf.float32,[None,32,32,3])
     self.y_hat = tf.placeholder(tf.float32,[None, 10])
     self.f1 = weight([3,3,3,3])
@@ -60,7 +69,6 @@ class modelX():
                          tf.nn.l2_loss(self.w1) +
                          tf.nn.l2_loss(self.w2))
 
-
     #########
     # Layer #
     #########
@@ -69,24 +77,35 @@ class modelX():
     self.cnn2 = cnn_relu_maxpool(self.cnn1,self.f2,self.fb2,self.conv_para,self.pool_para)
     self.cnn3 = cnn_relu(self.cnn2,self.f3,self.fb3,self.conv_para)
     self.cnn4 = cnn_relu(self.cnn3,self.f4,self.fb4,self.conv_para)
+    # flatten last cnn layer's output
     self.cnn4_output = tf.reshape(self.cnn4,[-1,64*3])
-    #self.cnn1_output = tf.reshape(self.cnn1,[-1,16*16*3])
     self.dnn1 = dnn_relu(self.cnn4_output,self.w1,self.b1)
     self.dnn2 = dnn(self.dnn1, self.w2, self.b2)
     self.softmax = softmax(self.dnn2)
 
-  def loss(self,X,y,X1,y1,mode='test',lr=2e-4,reg=1e-5,batch=5,epoch=30):
+  def loss(self,X,y,X1,y1,mode='test',lr=2e-4,reg=1e-5,batch=5,epoch=21,opt=True):
+    # history record 
+    self.X_loss_history = []
+    self.X1_loss_history = []
+    self.X_acc_history = []
+    self.X1_acc_history = []
+
+    # loss function
     cross_entropy = -tf.reduce_sum(self.y_hat*tf.log(self.softmax))
     cross_entropy += reg*self.regularizers
-    #f = tf.train.GradientDescentOptimizer(lr).minimize(cross_entropy)
-    f = tf.train.MomentumOptimizer(lr,0.9).minimize(cross_entropy)
-    #f = tf.train.RMSPropOptimizer(lr,0.9,0.9,1e-5).minimize(cross_entropy)
 
+    # optimizer
+    #f = tf.train.GradientDescentOptimizer(lr).minimize(cross_entropy)
+    #f = tf.train.MomentumOptimizer(lr,0.9).minimize(cross_entropy)
+    f = tf.train.RMSPropOptimizer(lr,0.9,0.9,1e-5).minimize(cross_entropy)
+
+    # initialize session & saver
     init = tf.initialize_all_variables()
     saver = tf.train.Saver()
     sess = tf.InteractiveSession()
     sess.run(init)
 
+    # outcome
     pred = tf.equal(tf.argmax(self.softmax,1),tf.argmax(self.y_hat,1))
     acc = tf.reduce_mean(tf.cast(pred,tf.float32))
 
@@ -94,31 +113,49 @@ class modelX():
     # Train #
     #########
     if mode=='train':
+      # whether restart new training session
+      if opt:
+        good_record = 0.0
+        low_loss = np.inf
+      else:
+        saver.restore(sess, "model.ckpt")
+        low_loss, good_record = sess.run([cross_entropy,acc],feed_dict={self.x:X1,self.y_hat:y1})
+
       num = X.shape[0]
-      good_record = 0.0
-      low_loss = np.inf
       for i in range(epoch):
         for j in range(num/batch):
           batch_xs, batch_ys = random_minibatch(X,y,batch)
           sess.run(f,feed_dict={self.x:batch_xs,self.y_hat:batch_ys})
+          # every 10 iter check status
           if j%10==0:
-            loss, accuracy = sess.run([cross_entropy,acc],feed_dict={self.x:X1,self.y_hat:y1})
+            loss, accuracy = sess.run([cross_entropy,acc],feed_dict={self.x:X,self.y_hat:y})
+            loss1, accuracy1 = sess.run([cross_entropy,acc],feed_dict={self.x:X1,self.y_hat:y1})
+            self.X_loss_history += [loss]
+            self.X1_loss_history += [loss1]
+            self.X_acc_history += [accuracy]
+            self.X1_acc_history += [accuracy1]
             # save best record
-            if accuracy >= good_record and loss < low_loss:
-              good_record = accuracy
-              low_loss = loss
+            if accuracy1 >= good_record:# and loss1 < low_loss:
+              good_record = accuracy1
+              low_loss = loss1
               save_path = saver.save(sess, "model.ckpt")
               print("!!Model saved in file: %s" % save_path)
-            print("epoch %2d/%2d,\titer %2d/%2d,\tLoss %.10f,\tAcc %.5f\tRecord %.5f" %(i,epoch,j,num/batch,
-                                                                                        loss,accuracy,good_record))
+            print("epoch %2d/%2d,\titer %2d/%2d," %(i,epoch,j,num/batch))
+            print("Train Loss %.10f,\tAcc %.5f" %(loss,accuracy))
+            print("Valid Loss %.10f,\tAcc %.5f\tRecord %.5f" %(loss1,accuracy1,good_record))
+            if loss1 == np.nan:
+              print 'nan issue'
+              break
     ########
     # Test #
     ########
     elif mode=='test':
       saver.restore(sess, "model.ckpt")
       print("Model restored.")
+      loss, accuracy = sess.run([cross_entropy,acc],feed_dict={self.x:X1,self.y_hat:y1})
+      print("Vali Loss %.10f,\tAcc %.5f"%(loss,accuracy))
       loss, accuracy = sess.run([cross_entropy,acc],feed_dict={self.x:X,self.y_hat:y})
-      print("Loss %.10f,\tAcc %.5f"%(loss,accuracy))
+      print("Test Loss %.10f,\tAcc %.5f"%(loss,accuracy))
       pass
 
 
