@@ -3,7 +3,7 @@ from tool.load_cifar10 import *
 import time
 import matplotlib.pyplot as plt
 
-def quick_scan(X,y,X1,y1,lr_range=[-3.0,-3.7],reg_range=[1,0]):
+def quick_scan(X,y,X1,y1,lr_range=[-3.0,-3.7],reg_range=[1,0],epoch=1):
   results = {}
   learning_rates = lr_range
   regularization_strengths = reg_range
@@ -20,7 +20,7 @@ def quick_scan(X,y,X1,y1,lr_range=[-3.0,-3.7],reg_range=[1,0]):
     print 'reg:\t'+str(reg)
 
     net = modelX()
-    net.loss(X,y,X1,y1,mode='train',lr=lr,reg=reg,batch=100,epoch=1)
+    net.loss(X,y,X1,y1,mode='train',lr=lr,reg=reg,batch=100,epoch=epoch)
     results[(lr,reg)]=(max(net.X_acc_history),max(net.X1_acc_history))
     if best_val < max(net.X1_acc_history):
       best_val = max(net.X1_acc_history)
@@ -62,12 +62,15 @@ def quick_scan(X,y,X1,y1,lr_range=[-3.0,-3.7],reg_range=[1,0]):
 
 def marathon(X,y,X1,y1,X2,y2,lr=1e-4,reg=1e-4,epoch=20):
   net = modelX()
+  #'''
   opt = raw_input('Restart training??[y/n]')
   if opt=='y':
     net.loss(X,y,X1,y1,mode='train',lr=lr,reg=reg,batch=100,epoch=epoch)
   elif opt=='n':
     net.loss(X,y,X1,y1,mode='train',lr=lr,reg=reg,batch=100,epoch=epoch,opt=False)
-  net.loss(X2,y2,X1,y1,mode='test')
+  #'''
+  #_net = modelX()
+  #_net.loss(X2,y2,X1,y1,mode='test')
 
   ####################################################
   # Visualize training loss and train / val accuracy #
@@ -103,12 +106,22 @@ if __name__=='__main__':
   valData = valData.reshape(-1,32,32,3)
   testData = testData.reshape(-1,32,32,3)
 
+  trainData = trainData.astype(np.float)
+  valData = valData.astype(np.float)
+  testData = testData.astype(np.float)
+
+  trainData /= 255.
+  valData /= 255.
+  testData /= 255.
 
   trainData = trainData-np.mean(trainData,axis=0)
   valData = valData-np.mean(trainData,axis=0)
-  testData = testData-np.mean(testData,axis=0)
+  testData = testData-np.mean(trainData,axis=0)
 
-  #quick_scan(trainData,trainLabel,valData,valLabel,lr_range=[-2.7,-3.4],reg_range=[0.9,0.2])
-  marathon(trainData,trainLabel,valData,valLabel,testData,testLabel,
-           lr=0.0005513410,reg=1.7258237895)
+  print trainData.max(),trainData.min()
+
+  quick_scan(trainData[0:10000],trainLabel[0:10000],
+             valData,valLabel,lr_range=[-3.2,-2.6],reg_range=[0,0.6],epoch=1)
+  #marathon(trainData,trainLabel,valData,valLabel,testData,testLabel,
+  #         lr=0.0005513410,reg=1.7258237895)
   pass
