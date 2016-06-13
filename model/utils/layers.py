@@ -29,10 +29,9 @@ def batchnorm(x, gamma, beta):
   g, b = gamma, beta
   return tf.nn.batch_normalization(x,0,1,offset=b,scale=g,variance_epsilon=1e-5)
 
-def spatial_batchnorm(x, gamma, beta, shape):
-  N, H, W, C = shape
-  x = tf.reshape(x, [N*H*W,C])
-  gamma = tf.reshape(gamma, [N*H*W,C])
+def spatial_batchnorm(x, gamma, beta):
+  N, H, W, C = x.get_shape().as_list()
+  x = tf.reshape(x, [-1,C])
   g, b = gamma, beta
   output = tf.nn.batch_normalization(x,0,1,offset=b,scale=g,variance_epsilon=1e-5)
   return tf.reshape(output, [N,H,W,C])
