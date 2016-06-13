@@ -77,6 +77,9 @@ def cnn_relu_maxpool_bn(x,w,b,conv_para,pool_para,gamma,beta,shape):
 def dnn_relu(x,w,b):
   return relu(dnn(x,w,b))
 
+def dnn_relu_dropout(x,w,b,p):
+  return dropout(relu(dnn(x,w,b)),p)
+
 def dnn_relu_bn(x,w,b,gamma,beta):
   return batchnorm(relu(dnn(x,w,b)),gamma,beta)
 
