@@ -52,9 +52,9 @@ class modelX():
     self.fb3 = bias([3])
     self.f4 = weight([3,3,3,3])
     self.fb4 = bias([3])
-    self.w1 = weight([192,512])
-    self.b1 = bias([512])
-    self.w2 = weight([512,10])
+    self.w1 = weight([192,1024])
+    self.b1 = bias([1024])
+    self.w2 = weight([1024,10])
     self.b2 = bias([10])
     self.conv_para = {'stride':1,
                      'pad':'SAME'}
@@ -62,12 +62,13 @@ class modelX():
                       'pad':'SAME',
                       'kernel':2}
 
-    self.regularizers = (tf.nn.l2_loss(self.f1) +
-                         tf.nn.l2_loss(self.f2) +
-                         tf.nn.l2_loss(self.f3) +
-                         tf.nn.l2_loss(self.f4) +
-                         tf.nn.l2_loss(self.w1) +
-                         tf.nn.l2_loss(self.w2))
+#    self.regularizers = (tf.nn.l2_loss(self.f1) +
+#                         tf.nn.l2_loss(self.f2) +
+#                         tf.nn.l2_loss(self.f3) +
+#                         tf.nn.l2_loss(self.f4) +
+#                         tf.nn.l2_loss(self.w1) +
+#                         tf.nn.l2_loss(self.w2))
+    self.regularizers = tf.add_n([tf.nn.l2_loss(v) for v in tf.trainable_variables()])
 
     #########
     # Layer #
@@ -79,7 +80,7 @@ class modelX():
     self.cnn4 = cnn_relu(self.cnn3,self.f4,self.fb4,self.conv_para)
     # flatten last cnn layer's output
     self.cnn4_output = tf.reshape(self.cnn4,[-1,64*3])
-    self.dnn1 = dnn_relu(self.cnn4_output,self.w1,self.b1)
+    self.dnn1 = dnn_relu_dropout(self.cnn4_output,self.w1,self.b1,0.5)
     self.dnn2 = dnn(self.dnn1, self.w2, self.b2)
     self.softmax = softmax(self.dnn2)
 
@@ -127,7 +128,7 @@ class modelX():
           batch_xs, batch_ys = random_minibatch(X,y,batch)
           sess.run(f,feed_dict={self.x:batch_xs,self.y_hat:batch_ys})
           # every 10 iter check status
-          if j%10==0:
+          if j%100==0:
             loss, accuracy = sess.run([cross_entropy,acc],feed_dict={self.x:X,self.y_hat:y})
             loss1, accuracy1 = sess.run([cross_entropy,acc],feed_dict={self.x:X1,self.y_hat:y1})
             self.X_loss_history += [loss]
