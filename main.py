@@ -3,7 +3,7 @@ from tool.load_cifar10 import *
 import time
 import matplotlib.pyplot as plt
 
-def quick_scan(X,y,X1,y1,lr_range=[-3.0,-3.7],reg_range=[1,0],epoch=1):
+def quick_scan(X,y,X1,y1,lr_range=[-3.0,-3.7],reg_range=[1,0],epoch=1,sample=10):
   results = {}
   learning_rates = lr_range
   regularization_strengths = reg_range
@@ -11,7 +11,7 @@ def quick_scan(X,y,X1,y1,lr_range=[-3.0,-3.7],reg_range=[1,0],epoch=1):
   best_lr, best_reg = None, None
 
   tic = time.time()
-  for i in range(10):
+  for i in range(sample):
     print '['+str(i)+']'
     # random choose lr & reg within the range
     lr = 10**np.random.uniform(learning_rates[0],learning_rates[1])
@@ -21,9 +21,9 @@ def quick_scan(X,y,X1,y1,lr_range=[-3.0,-3.7],reg_range=[1,0],epoch=1):
 
     net = modelX()
     net.loss(X,y,X1,y1,mode='train',lr=lr,reg=reg,batch=100,epoch=epoch)
-    results[(lr,reg)]=(max(net.X_acc_history),max(net.X1_acc_history))
-    if best_val < max(net.X1_acc_history):
-      best_val = max(net.X1_acc_history)
+    results[(lr,reg)]=(net.X_acc_history[-1],net.X1_acc_history[-1])
+    if best_val < net.X1_acc_history[-1]:
+      best_val = net.X1_acc_history[-1]
       best_lr = lr
       best_reg = reg
 
@@ -91,6 +91,9 @@ def marathon(X,y,X1,y1,X2,y2,lr=1e-4,reg=1e-4,epoch=20):
   plt.show()
   pass
 
+def review(X,y,X1,y1):
+  net = modelX()
+  net.loss(X,y,X1,y1,mode='test')
 
 if __name__=='__main__':
   start = time.time()
@@ -119,9 +122,12 @@ if __name__=='__main__':
   testData = testData-np.mean(trainData,axis=0)
 
   print trainData.max(),trainData.min()
-
+  start = time.time()
   quick_scan(trainData[0:10000],trainLabel[0:10000],
-             valData,valLabel,lr_range=[-3.2,-2.6],reg_range=[0,0.6],epoch=1)
-  #marathon(trainData,trainLabel,valData,valLabel,testData,testLabel,
-  #         lr=0.0005513410,reg=1.7258237895)
+             valData,valLabel,lr_range=[-3.1,-3.6],reg_range=[0.1,0.6],epoch=6,sample=20)
+#  marathon(trainData,trainLabel,valData,valLabel,testData,testLabel,
+#           lr=0.0012079871,reg=1.1859847909,epoch=20)
+#           lr=0.000012079871,reg=1.1859847909,epoch=20)
+#  review(testData,testLabel,valData,valLabel)
+  print time.time()-start
   pass
