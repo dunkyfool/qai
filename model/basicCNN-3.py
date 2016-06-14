@@ -3,9 +3,7 @@ import tensorflow as tf
 from utils.layers import *
 from utils.initParams import *
 #
-#  model1: CNN3x3 - maxpool - CNN3x3 - maxpool - CNN3x3 - CNN3x3 FC FC softmax
-#  model2: CNN3x3 - maxpool - CNN3x3 - maxpool - CNN1x1 - CNN3x3 FC FC softmax
-#  model3: CNN3x3 - maxpool - CNN3x3 - maxpool - CNN3x3 - CNN1x1 FC FC softmax
+# CNN3x3 - maxpool - bn - CNN3x3 - maxpool - bn - CNN3x3 -bn- CNN3x3 -bn- FC512 FC softmax
 #
 
 ####################
