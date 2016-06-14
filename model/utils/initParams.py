@@ -20,9 +20,9 @@ def bias(shape,name=None):
   return tf.Variable(b,name=name)
 
 def gamma(shape,name=None):
-  g = tf.constant(1,shape=shape)
+  g = tf.constant(1.0,shape=shape)
   return tf.Variable(g,name=name)
 
 def beta(shape,name=None):
-  b = tf.constant(0,shape=shape)
+  b = tf.constant(0.0,shape=shape)
   return tf.Variable(b,name=name)

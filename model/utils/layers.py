@@ -62,6 +62,23 @@ def cnn_relu(x,w,b,conv_para):
 def cnn_relu_maxpool(x,w,b,conv_para,pool_para):
   return maxpool(relu(cnn(x,w,b,conv_para)),pool_para)
 
+def cnn_relu_bn(x,w,b,conv_para,gamma,beta):
+  output1 = relu(cnn(x,w,b,conv_para))
+  shape = output1.get_shape().as_list()
+  bn = tf.reshape(output1,[-1,shape[-1]])
+  output2 = batchnorm(bn,gamma,beta)
+  output = tf.reshape(output2,[-1,shape[1],shape[2],shape[3]])
+  return output
+
+def cnn_relu_maxpool_bn(x,w,b,conv_para,pool_para,gamma,beta):
+  output1 = maxpool(relu(cnn(x,w,b,conv_para)),pool_para)
+  shape = output1.get_shape().as_list()
+  print shape,type(shape)
+  bn = tf.reshape(output1,[-1,shape[-1]])
+  output2 = batchnorm(bn,gamma,beta)
+  output = tf.reshape(output2,[-1,shape[1],shape[2],shape[3]])
+  return output
+
 def dnn_relu(x,w,b):
   return relu(dnn(x,w,b))
 
