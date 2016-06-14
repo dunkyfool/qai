@@ -26,15 +26,8 @@ def dropout(x, p):
   return tf.nn.dropout(x,p)
 
 def batchnorm(x, gamma, beta):
-  g, b = gamma, beta
-  return tf.nn.batch_normalization(x,0,1,offset=b,scale=g,variance_epsilon=1e-5)
-
-def spatial_batchnorm(x, gamma, beta):
-  N, H, W, C = x.get_shape().as_list()
-  x = tf.reshape(x, [-1,C])
-  g, b = gamma, beta
-  output = tf.nn.batch_normalization(x,0,1,offset=b,scale=g,variance_epsilon=1e-5)
-  return tf.reshape(output, [N,H,W,C])
+  mean, var = tf.nn.moments(x,[0])
+  return tf.nn.batch_normalization(x,mean,var,offset=beta,scale=gamma,variance_epsilon=1e-5)
 
 def maxpool(x, para):
   k = [1,para['kernel'],para['kernel'],1]
@@ -68,10 +61,6 @@ def cnn_relu(x,w,b,conv_para):
 
 def cnn_relu_maxpool(x,w,b,conv_para,pool_para):
   return maxpool(relu(cnn(x,w,b,conv_para)),pool_para)
-
-def cnn_relu_maxpool_bn(x,w,b,conv_para,pool_para,gamma,beta,shape):
-  out = maxpool(relu(cnn(x,w,b,conv_para)),pool_para)
-  return spatial_batchnorm(out, gamma, beta, shape)
 
 def dnn_relu(x,w,b):
   return relu(dnn(x,w,b))
