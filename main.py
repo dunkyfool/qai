@@ -123,11 +123,13 @@ if __name__=='__main__':
 
   print trainData.max(),trainData.min()
   start = time.time()
-  quick_scan(trainData[0:1000],trainLabel[0:1000],
-             valData,valLabel,lr_range=[-3.3,-3.6],reg_range=[0.1,0.4],epoch=10,sample=1)
+#  quick_scan(trainData[0:10000],trainLabel[0:10000],
+#             valData,valLabel,lr_range=[-3.0,-4.0],reg_range=[0.1,0.8],epoch=10,sample=10)
 #  marathon(trainData,trainLabel,valData,valLabel,testData,testLabel,
-#           lr=0.0003308832,reg=2.2784455907,epoch=20)
+#           lr=0.000002733308,reg=5.7288431680,epoch=20)
+#bn           lr=0.0002733308,reg=5.7288431680,epoch=20)
+#drop           lr=0.0003308832,reg=2.2784455907,epoch=20)
 #no drop    lr=0.0012079871,reg=1.1859847909,epoch=20)
-#  review(testData,testLabel,valData,valLabel)
+  review(testData,testLabel,valData,valLabel)
   print time.time()-start
   pass

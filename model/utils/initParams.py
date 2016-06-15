@@ -9,8 +9,8 @@ def weight(shape,name=None):
   elif len(shape)==4:
     fin = shape[0]*shape[1]*shape[2]
     fout = shape[0]*shape[1]*shape[3]
-  low = -4*np.sqrt(1.0/(fin+fout)) # use 4 for sigmoid, 1 for tanh activation 
-  high = 4*np.sqrt(1.0/(fin+fout))
+  low = -1*np.sqrt(1.0/(fin+fout)) # use 4 for sigmoid, 1 for tanh activation 
+  high = 1*np.sqrt(1.0/(fin+fout))
   return tf.Variable(tf.random_uniform(shape, minval=low, maxval=high, dtype=tf.float32),name=name)
   #w = tf.truncated_normal(shape, stddev=std)
   #return tf.Variable(w)
