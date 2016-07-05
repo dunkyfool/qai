@@ -16,6 +16,11 @@ def cnn(x,w,b,para):
   p = para['pad']
   return tf.nn.conv2d(x, w, strides=s, padding=p) + b
 
+def cnn1d(x,w,b,para):
+  s = [1,1,para['stride'],1]
+  p = para['pad']
+  return tf.nn.conv2d(x, w, strides=s, padding=p) + b
+
 def rnn(x,w,b):
   pass
 
@@ -64,6 +69,14 @@ def cnn_relu_maxpool(x,w,b,conv_para,pool_para):
 
 def cnn_relu_bn(x,w,b,conv_para,gamma,beta):
   output1 = relu(cnn(x,w,b,conv_para))
+  shape = output1.get_shape().as_list()
+  bn = tf.reshape(output1,[-1,shape[-1]])
+  output2 = batchnorm(bn,gamma,beta)
+  output = tf.reshape(output2,[-1,shape[1],shape[2],shape[3]])
+  return output
+
+def cnn1d_relu_bn(x,w,b,conv_para,gamma,beta):
+  output1 = relu(cnn1d(x,w,b,conv_para))
   shape = output1.get_shape().as_list()
   bn = tf.reshape(output1,[-1,shape[-1]])
   output2 = batchnorm(bn,gamma,beta)
