@@ -101,6 +101,9 @@ def dnn_relu_dropout(x,w,b,p):
 def dnn_relu_bn(x,w,b,gamma,beta):
   return batchnorm(relu(dnn(x,w,b)),gamma,beta)
 
+def dnn_sigmoid(x,w,b):
+  return sigmoid(dnn(x,w,b))
+
 ########
 # TEST #
 ########
