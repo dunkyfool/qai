@@ -77,11 +77,13 @@ def cnn_relu_bn(x,w,b,conv_para,gamma,beta):
 
 def cnn1d_relu_bn(x,w,b,conv_para,gamma,beta):
   output1 = relu(cnn1d(x,w,b,conv_para))
+  #output1 = cnn1d(x,w,b,conv_para)
   shape = output1.get_shape().as_list()
   bn = tf.reshape(output1,[-1,shape[-1]])
   output2 = batchnorm(bn,gamma,beta)
   output = tf.reshape(output2,[-1,shape[1],shape[2],shape[3]])
   return output
+  #return relu(output)
 
 def cnn_relu_maxpool_bn(x,w,b,conv_para,pool_para,gamma,beta):
   output1 = maxpool(relu(cnn(x,w,b,conv_para)),pool_para)
@@ -99,7 +101,7 @@ def dnn_relu_dropout(x,w,b,p):
   return dropout(relu(dnn(x,w,b)),p)
 
 def dnn_relu_bn(x,w,b,gamma,beta):
-  return batchnorm(relu(dnn(x,w,b)),gamma,beta)
+  return relu(batchnorm(dnn(x,w,b),gamma,beta))
 
 def dnn_sigmoid(x,w,b):
   return sigmoid(dnn(x,w,b))
