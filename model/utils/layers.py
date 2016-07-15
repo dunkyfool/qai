@@ -85,6 +85,9 @@ def cnn1d_relu_bn(x,w,b,conv_para,gamma,beta):
   return output
   #return relu(output)
 
+def cnn1d_relu(x,w,b,conv_para):
+  return relu(cnn1d(x,w,b,conv_para))
+
 def cnn_relu_maxpool_bn(x,w,b,conv_para,pool_para,gamma,beta):
   output1 = maxpool(relu(cnn(x,w,b,conv_para)),pool_para)
   shape = output1.get_shape().as_list()
