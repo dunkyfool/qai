@@ -30,9 +30,13 @@ def rnn(x,w,b):
 def dropout(x, p):
   return tf.nn.dropout(x,p)
 
-def batchnorm(x, gamma, beta):
+def batchnorm(x, gamma, beta, r_mean, r_var):
   mean, var = tf.nn.moments(x,[0])
-  return tf.nn.batch_normalization(x,mean,var,offset=beta,scale=gamma,variance_epsilon=1e-5)
+  update_mean = tf.assign(r_mean,0.9 * r_mean + 0.1 * mean)
+  update_var = tf.assign(r_var,0.9 * r_var + 0.1 * var)
+  with tf.control_dependencies([update_mean,update_var]):
+    return tf.nn.batch_normalization(x,tf.clip_by_value(r_mean,1e-10,100),tf.clip_by_value(r_var,1e-10,100),
+                                     offset=beta,scale=gamma,variance_epsilon=1e-5)
 
 def maxpool(x, para):
   k = [1,para['kernel'],para['kernel'],1]
@@ -67,20 +71,20 @@ def cnn_relu(x,w,b,conv_para):
 def cnn_relu_maxpool(x,w,b,conv_para,pool_para):
   return maxpool(relu(cnn(x,w,b,conv_para)),pool_para)
 
-def cnn_relu_bn(x,w,b,conv_para,gamma,beta):
+def cnn_relu_bn(x,w,b,conv_para,gamma,beta,r_mean,r_var):
   output1 = relu(cnn(x,w,b,conv_para))
   shape = output1.get_shape().as_list()
   bn = tf.reshape(output1,[-1,shape[-1]])
-  output2 = batchnorm(bn,gamma,beta)
+  output2 = batchnorm(bn,gamma,beta,r_mean,r_var)
   output = tf.reshape(output2,[-1,shape[1],shape[2],shape[3]])
   return output
 
-def cnn1d_relu_bn(x,w,b,conv_para,gamma,beta):
+def cnn1d_relu_bn(x,w,b,conv_para,gamma,beta,r_mean,r_var):
   output1 = relu(cnn1d(x,w,b,conv_para))
   #output1 = cnn1d(x,w,b,conv_para)
   shape = output1.get_shape().as_list()
   bn = tf.reshape(output1,[-1,shape[-1]])
-  output2 = batchnorm(bn,gamma,beta)
+  output2 = batchnorm(bn,gamma,beta,r_mean,r_var)
   output = tf.reshape(output2,[-1,shape[1],shape[2],shape[3]])
   return output
   #return relu(output)
@@ -88,12 +92,12 @@ def cnn1d_relu_bn(x,w,b,conv_para,gamma,beta):
 def cnn1d_relu(x,w,b,conv_para):
   return relu(cnn1d(x,w,b,conv_para))
 
-def cnn_relu_maxpool_bn(x,w,b,conv_para,pool_para,gamma,beta):
+def cnn_relu_maxpool_bn(x,w,b,conv_para,pool_para,gamma,beta,r_mean,r_var):
   output1 = maxpool(relu(cnn(x,w,b,conv_para)),pool_para)
   shape = output1.get_shape().as_list()
   print shape,type(shape)
   bn = tf.reshape(output1,[-1,shape[-1]])
-  output2 = batchnorm(bn,gamma,beta)
+  output2 = batchnorm(bn,gamma,beta,r_mean,r_var)
   output = tf.reshape(output2,[-1,shape[1],shape[2],shape[3]])
   return output
 
@@ -103,8 +107,9 @@ def dnn_relu(x,w,b):
 def dnn_relu_dropout(x,w,b,p):
   return dropout(relu(dnn(x,w,b)),p)
 
-def dnn_relu_bn(x,w,b,gamma,beta):
-  return relu(batchnorm(dnn(x,w,b),gamma,beta))
+def dnn_relu_bn(x,w,b,gamma,beta,r_mean,r_var):
+  output = batchnorm(dnn(x,w,b),gamma,beta,r_mean,r_var)
+  return relu(output)
 
 def dnn_sigmoid(x,w,b):
   return sigmoid(dnn(x,w,b))
